@@ -4,10 +4,13 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
+#include <cstdint>
 #include <sstream>
 #include "functions.h"
 
 int main() {
+    std::vector<std::string> registers;
+    std::vector<std::string> memory;
 
     std::ifstream inputFile("pp2_input.txt");
     std::string line;
