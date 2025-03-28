@@ -33,7 +33,7 @@ int main() {
 
         std::string opcode = words[0];
         std::vector<std::string> operands(words.begin() + 1, words.end());
-        processOperation(opcode, operands);
+        processOperation(opcode, operands, registers, memory);
     }
 
     return 0;
