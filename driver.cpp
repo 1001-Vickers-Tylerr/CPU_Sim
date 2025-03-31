@@ -3,14 +3,16 @@
 
 #include <iostream>
 #include <fstream>
+#include <sstream>
 #include <vector>
 #include <cstdint>
-#include <sstream>
+#include <algorithm>
 #include "functions.h"
 
 int main() {
-    std::vector<std::string> registers;
-    std::vector<std::string> memory;
+    std::string registers[8] = {"0", "0", "0", "0", "0", "0", "0", "0"};
+    std::string memory[5];
+    int nzcv[4] = {0, 0, 0, 0};
 
     std::ifstream inputFile("pp2_input.txt");
     std::string line;
@@ -25,15 +27,23 @@ int main() {
         std::vector<std::string> words;
         std::string word;
 
+        // Split by spaces first
         while (iss >> word) {
-            words.push_back(word);
+            // Split by commas within each word
+            std::string token;
+            std::istringstream tokenStream(word);
+            while (std::getline(tokenStream, token, ',')) {
+                if (!token.empty()) {
+                    words.push_back(token);
+                }
+            }
         }
 
         if (words.empty()) continue;
 
         std::string opcode = words[0];
         std::vector<std::string> operands(words.begin() + 1, words.end());
-        processOperation(opcode, operands, registers, memory);
+        processOperation(opcode, operands, registers, memory, nzcv);
     }
 
     return 0;
