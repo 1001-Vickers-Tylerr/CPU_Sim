@@ -49,6 +49,19 @@ void processOperation(const std::string &opcode, const std::vector<std::string> 
         std::cout << output << "Unsupported opcode";
     }
 
+    uint32_t op1 = 0, 
+             op2 = 0, 
+             op3 = 0;
+
+    if (operands.size() >= 1) {
+        op1 = std::stoul(operands[0], nullptr, 16);
+    }
+    if (operands.size() >= 2) {
+        op2 = std::stoul(operands[1], nullptr, 16);
+    }
+    if (operands.size() == 3) {
+        op3 = std::stoul(operands[2], nullptr, 16);
+    }
 }
 
 std::string toHexString(uint32_t value) {
