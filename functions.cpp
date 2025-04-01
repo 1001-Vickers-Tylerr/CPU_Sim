@@ -34,24 +34,24 @@ void processOperation(const std::string &opcode, const std::vector<std::string> 
     if ((opcodeVal > 0 && opcodeVal <= 2) || (opcodeVal > 4 && opcodeVal <= 7)) {
         if (operands.size() != 3) {
             std::cout << output << std::endl;
-            std::cout << "Invalid Operand Count\n";
+            std::cout << "Invalid Operand Count\n\n";
             return;
         }
     }
     else if ((opcodeVal > 2 && opcodeVal <= 3) || (opcodeVal > 7 && opcodeVal <= 9)) {
         if (operands.size() != 2) {
-            std::cout << "Invalid Operand Count\n";
+            std::cout << "Invalid Operand Count\n\n";
             return;
         }
     }
     else if (opcodeVal > 9 && opcodeVal <= 12) {
         if (operands.size() != 1) {
-            std::cout << "Invalid Operand Count\n";
+            std::cout << "Invalid Operand Count\n\n";
             return;
         }
     }
     else if (opcodeVal == 0) {
-        std::cout << "Unsupported opcode\n";
+        std::cout << "Unsupported opcode\n\n";
         return;
     }
 
@@ -99,9 +99,26 @@ void processOperation(const std::string &opcode, const std::vector<std::string> 
                 std::cout << std::endl;
             }
             break;       
-            break;
         case 3: // CMP
-            
+            try {
+                std::cout << output << std::endl;
+                // Operand1 must be a register, not an immediate value
+                if (operands[0][0] == '#') {
+                    std::cout << "Invalid Instruction, first operand cannot be immediate\n\n";
+                    break;
+                }
+                uint32_t val1 = getValue(operands[0], registers, registerMap);  
+                uint32_t val2 = getValue(operands[1], registers, registerMap);  
+                uint32_t result = val1 - val2;
+        
+                // Update Z flag 
+                nzcv[1] = (result == 0) ? 1 : 0;  
+        
+                printArrays(registers, memory);
+                std::cout << std::endl;
+            } catch (const std::exception& e) {
+                std::cout << "Error: " << e.what() << "\n\n";
+            }
             break;
         case 4: // MOV
             try {
@@ -157,22 +174,87 @@ void processOperation(const std::string &opcode, const std::vector<std::string> 
             }            
             break;
         case 7: // XOR
+            try {
+                registerIndex = registerMap.at(operands[0]);  // Destination
+                std::cout << output << std::endl;
+                // Check if Operand2 is an immediate value (starts with '#')
+                if (operands[1][0] == '#') {
+                    std::cout << "Invalid Instruction, second operand cannot be immediate\n\n";
+                    break;
+                }
+                uint32_t val1 = getValue(operands[1], registers, registerMap);
+                uint32_t val2 = getValue(operands[2], registers, registerMap);
+                result = val1 ^ val2;
+                registers[registerIndex] = toHexString(result);
+                printArrays(registers, memory);
+                std::cout << std::endl;
+            } catch (const std::exception& e) {
+                output += "Error: " + std::string(e.what());
+                std::cout << std::endl;
+            }            
+            break;            
             
-            break;
         case 8: // LOAD
-            
+            try {
+                registerIndex = registerMap.at(operands[0]);  // Destination 
+                std::cout << output << std::endl;
+        
+                // Check if Operand2 is a valid memory address
+                if (memoryMap.count(operands[1])) {
+                    int memoryIndex = memoryMap.at(operands[1]);  
+                    // If memory location is empty, treat it as 0; otherwise, convert from hex string
+                    uint32_t value = (memory[memoryIndex].empty() ? 0 : std::stoul(memory[memoryIndex], nullptr, 16));
+                    registers[registerIndex] = toHexString(value);  
+                    printArrays(registers, memory);
+                    std::cout << std::endl;
+                } else {
+                    std::cout << "Invalid Instruction. Memory out-of-range.\n\n";
+                }
+            } catch (const std::exception& e) {
+                std::cout << "Error: " << e.what() << "\n\n";
+            }
             break;
         case 9: // STORE
-            
+            try {
+                registerIndex = registerMap.at(operands[0]);  // Source
+                std::cout << output << std::endl;
+        
+                // Check if Operand2 is a valid memory address
+                if (memoryMap.count(operands[1])) {
+                    int memoryIndex = memoryMap.at(operands[1]);  
+                    // Get the value from the source register and store it in memory
+                    uint32_t value = std::stoul(registers[registerIndex], nullptr, 16);
+                    memory[memoryIndex] = toHexString(value);  
+                    printArrays(registers, memory);
+                    std::cout << std::endl;
+                } else {
+                    std::cout << "Invalid Instruction. Memory out-of-range.\n\n";
+                }
+            } catch (const std::exception& e) {
+                std::cout << "Error: " << e.what() << "\n\n";
+            }
+            break;                
+            case 10: // BAL
+            std::cout << output << std::endl;
+            std::cout << "Branch will be taken to " << operands[0] << "\n\n";
             break;
-        case 10: // BAL
-            
-            break;
+        
         case 11: // BEQ
-            
+            std::cout << output << std::endl;
+            if (nzcv[1] == 1) {  
+                std::cout << "Branch will be taken to " << operands[0] << "\n\n";
+            } else {
+                std::cout << "Branch will not be taken to " << operands[0] << "\n\n";
+            }
             break;
+        
         case 12: // BNE
-            
+            std::cout << output << std::endl;
+            if (nzcv[1] == 0) {  
+                std::cout << "Branch will be taken to " << operands[0] << "\n\n";
+            } else {
+                std::cout << "Branch will not be taken to " << operands[0] << "\n\n";
+            }
             break;
         case 0:
             output += "Unsupported Operation";
